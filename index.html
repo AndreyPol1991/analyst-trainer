@@ -306,6 +306,45 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
 .anat b{display:inline-block; min-width:64px}
 .anat span{color:var(--muted); font-size:12px}
 
+/* ---------- Лабиринт ---------- */
+.maze-wrap{display:flex; gap:22px; flex-wrap:wrap}
+.maze{display:grid; gap:2px; flex:none; width:min(100%,352px); align-self:flex-start}
+.mc{aspect-ratio:1; border-radius:3px; position:relative}
+.mc.w{background:var(--line)}
+.mc.p{background:var(--surface2)}
+.mc.exit{background:var(--bad-soft); outline:1px solid var(--bad); outline-offset:-1px}
+.mc.exit.open{background:var(--good-soft); outline:1px solid var(--good)}
+.stn{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:Consolas,Menlo,monospace; font-size:12px; font-weight:700; color:var(--accent-ink); background:var(--accent-soft); border-radius:3px}
+.stn.got{color:var(--good); background:var(--good-soft)}
+.pl{position:absolute; inset:22%; background:var(--teal); border-radius:50%; box-shadow:0 0 0 2px var(--surface); z-index:2}
+.maze-side{flex:1; min-width:190px}
+.mlist{margin:0 0 14px; padding-left:20px; font-size:13.5px}
+.mlist li{margin:4px 0; color:var(--muted)}
+.mlist li.done{color:var(--good); text-decoration:line-through}
+.mlist li.cur{color:var(--ink); font-weight:700}
+.dpad{display:flex; flex-direction:column; align-items:center; gap:4px}
+.dpad button{width:46px; height:40px; border:1px solid var(--line); border-radius:8px; background:var(--surface2); font-size:15px}
+.dpad button:hover{border-color:var(--teal)}
+.dpad div{display:flex; gap:4px}
+
+/* ---------- Распутай дело (5 почему) ---------- */
+.chain-start,.chain-card{border:1px solid var(--line); border-radius:10px; padding:10px 14px; background:var(--surface2); font-size:14.5px; max-width:580px; animation:rise .2s ease}
+.chain-start{border-color:var(--bad); background:var(--bad-soft); font-weight:650}
+.chain-card.okc{border-color:var(--good); background:var(--good-soft)}
+.chain-arrow{color:var(--teal); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin:6px 0 6px 16px}
+
+/* ---------- Шифр ---------- */
+.cipher-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px}
+.cy{display:flex; flex-direction:column; align-items:center; gap:5px}
+.cy .sym{font-size:26px; line-height:1; color:var(--accent)}
+.cy .cslot{width:40px; height:40px; border:1px dashed var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; background:var(--surface)}
+.cy .cslot.filled{border-style:solid; background:var(--surface2); cursor:pointer}
+.cy .cslot.ok{border-color:var(--good); background:var(--good-soft)}
+.cy .cslot.bad{border-color:var(--bad); background:var(--bad-soft)}
+.keytab{display:flex; gap:7px; flex-wrap:wrap; margin:12px 0 2px}
+.keytab span{border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-size:13.5px; background:var(--surface)}
+.keytab span b{color:var(--accent)}
+
 @media (max-width:560px){
   .pairline{grid-template-columns:1fr}
   .bslot{flex-direction:column; align-items:stretch}
@@ -767,6 +806,43 @@ const M=[
   {t:"tf",q:"Daily в Scrum — часовой отчёт каждого перед менеджером.",v:false,exp:"Миф: это 15-минутная синхронизация самой команды."},
   {t:"tf",q:"Прототип помогает заказчику понять, чего он на самом деле хочет.",v:true,exp:"Правда: реагировать на макет проще, чем описывать словами."},
   {t:"tf",q:"Актором use case может быть кнопка интерфейса.",v:false,exp:"Миф: актор — внешний участник с целью (человек или система), а не элемент UI."}
+ ]},
+
+{id:"moriarty",num:"10",title:"Испытания Мориарти",
+ desc:"Профессор Мориарти прислал в бюро пакет головоломок: лабиринт, шифрованные записки и два по-настоящему запутанных дела. Пройдите испытания — докажите, что вам по зубам любая загадка системного анализа.",
+ theory:[
+  "Лабиринт: соберите все шесть этапов жизненного цикла строго по порядку (перескакивать нельзя!), затем идите к выходу E. Управление — стрелки, WASD или кнопки на экране.",
+  "Шифры: рядом с криптограммой лежит перехваченный ключ Мориарти. Сопоставьте символы и буквы — и соберите слово.",
+  "«Распутай дело»: метод пяти «почему». Задавайте вопрос «почему?» снова и снова, пока не дойдёте до корневой причины — она всегда в процессе, а не в людях.",
+  "Это бонусные испытания: они закрепляют всё, что вы прошли в делах 01–09."],
+ tasks:[
+  {t:"maze",q:"Мориарти запер этапы жизненного цикла ПО в подземельях Лондона. Пройдите лабиринт, собрав этапы строго по порядку, и выберитесь через выход E.",
+   map:["###########","#S...#...1#","#.##.#.##.#","#2.#.....3#","#.#.#####.#","#.#..4..#.#","#.####.##.#","#....#.#5.#","##.#.#.#.##","#6...#...E#","###########"],
+   stations:["Анализ требований","Проектирование","Разработка","Тестирование","Внедрение","Сопровождение"],
+   exp:"Жизненный цикл проходят по порядку: анализ → проектирование → разработка → тестирование → внедрение → сопровождение. Перескочишь этап — заблудишься, как в лабиринте."},
+  {t:"cipher",q:"Перехваченная записка Мориарти: здесь зашифровано место, где команда хранит все требования и задачи, упорядоченные по приоритету. Расшифруйте!",
+   word:"БЭКЛОГ",decoys:"АРС",
+   exp:"Бэклог — упорядоченный список задач и требований продукта. Наверху — самое ценное; за порядок отвечает владелец продукта."},
+  {t:"cipher",q:"Вторая записка: зашифрована любимая техника Холмса для выявления требований у ключевых свидетелей. Расшифруйте!",
+   word:"ИНТЕРВЬЮ",decoys:"ОСА",
+   exp:"Интервью — глубокий разговор с носителем знаний: открытые вопросы, уточнения и письменная фиксация итогов."},
+  {t:"chain",q:"Распутайте «Дело о сорванном релизе» методом пяти «почему» — от симптома к корневой причине.",
+   start:"Инцидент: в день релиза приложение падает у половины пользователей.",
+   steps:[
+    {ask:"Почему приложение падает?",opts:["Пользователи неправильно им пользуются","По логам: падает экран оплаты на устройствах со старыми версиями Android","Просто не повезло — бывает"],a:1,exp:"первый шаг — факты и логи, а не догадки"},
+    {ask:"Почему экран оплаты падает именно на старых Android?",opts:["Эти версии никто не тестировал — их не было в чек-листе","Старые телефоны не должны работать","Вмешались конкуренты"],a:0,exp:"дефект пропущен, потому что окружение не проверялось"},
+    {ask:"Почему старых версий не было в чек-листе тестирования?",opts:["Тестировщик поленился","В требованиях не был указан список поддерживаемых версий ОС","Чек-листы вообще не нужны"],a:1,exp:"чек-лист строится от требований: чего нет в ТЗ — нет и в проверках"},
+    {ask:"Почему в требованиях нет списка поддерживаемых версий?",opts:["Аналитик не уточнил нефункциональные требования о совместимости","Заказчик запретил об этом спрашивать","Такое в ТЗ не пишут"],a:0,exp:"совместимость — классическое НФТ, о котором забывают чаще всего"},
+    {ask:"Корневая причина найдена. Что изменить, чтобы дело не повторилось?",opts:["Наказать тестировщика","Добавить в шаблон ТЗ раздел НФТ (совместимость, нагрузка) и чек-лист вопросов аналитика","Отказаться от поддержки Android"],a:1,exp:"«5 почему» ведёт к изменению процесса, а не к поиску виноватых"}],
+   exp:"Метод пяти «почему»: от симптома — к корневой причине в процессе. Итог расследования — улучшение процесса, а не наказание людей."},
+  {t:"chain",q:"Распутайте «Дело о бесконечном проекте» — найдите, почему релиз не наступает никогда.",
+   start:"Инцидент: проект «Портал» идёт третий год, релиза не видно, команда выгорела.",
+   steps:[
+    {ask:"Почему проект не может выйти в релиз?",opts:["Команда слабая","Объём работ постоянно растёт: каждую неделю появляются новые требования","В ИТ так всегда"],a:1,exp:"смотрим на факты: бэклог растёт быстрее, чем команда успевает делать"},
+    {ask:"Почему требования добавляются бесконтрольно?",opts:["Просьбы заказчика прилетают в чат и сразу берутся в работу — процесса управления изменениями нет","Заказчик — злодей","Разработчики любят новые задачи"],a:0,exp:"изменение должно фиксироваться, оцениваться и приоритизироваться"},
+    {ask:"Почему просьбы попадают в работу без оценки и приоритета?",opts:["Не назначен владелец продукта, отвечающий за приоритеты","Оценка — трата времени","Так захотел менеджер"],a:0,exp:"без владельца продукта каждый «срочный» запрос равен всем остальным"},
+    {ask:"Корневая причина найдена. Что внедрить?",opts:["Запретить заказчику писать в чат","Назначить владельца продукта, вести бэклог с приоритизацией MoSCoW и зафиксировать процесс изменений","Увеличить рабочий день команды"],a:1,exp:"управление изменениями и приоритеты возвращают контроль над объёмом"}],
+   exp:"Расползание объёма (scope creep) лечится процессом: владелец продукта, приоритизированный бэклог и формальный путь для каждого изменения."}
  ]}
 ];
 
@@ -783,11 +859,12 @@ function rank(xp){let r=RANKS[0][1];for(const[t,n]of RANKS)if(xp>=t)r=n;return r
 function stars(ratio){return ratio>=.9?3:ratio>=.7?2:ratio>=.5?1:0}
 function starStr(n){let s="";for(let i=0;i<3;i++)s+=`<span class="${i<n?"":"off"}">★</span>`;return s}
 function hud(){
+  if(window.__mazeKey){document.removeEventListener("keydown",window.__mazeKey);window.__mazeKey=null}
   document.getElementById("hud-xp").textContent=totalXp();
   document.getElementById("hud-rank").textContent=rank(totalXp());
   document.getElementById("hud-streak").textContent=S.bestStreak;
 }
-const TYPE_LABEL={quiz:"Дедукция · выберите верный вывод",order:"Хронология · восстановите ход событий",match:"Сопоставление · свяжите улики",sort:"Картотека · разложите улики по папкам",build:"Улика · соберите user story по фрагментам",dialog:"Показания · ведите допрос репликами",spot:"Экспертиза · найдите подозрительную строку",tf:"Блиц-допрос · 8 секунд на вердикт"};
+const TYPE_LABEL={quiz:"Дедукция · выберите верный вывод",order:"Хронология · восстановите ход событий",match:"Сопоставление · свяжите улики",sort:"Картотека · разложите улики по папкам",build:"Улика · соберите user story по фрагментам",dialog:"Показания · ведите допрос репликами",spot:"Экспертиза · найдите подозрительную строку",tf:"Блиц-допрос · 8 секунд на вердикт",maze:"Лабиринт · пройдите этапы по порядку",cipher:"Шифр · расшифруйте перехваченное слово",chain:"Распутай дело · метод пяти «почему»"};
 
 const ICONS={
  lc:'<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><polyline points="20.5 2.5 20.5 7 16 7"/>',
@@ -798,7 +875,8 @@ const ICONS={
  method:'<circle cx="6" cy="5.5" r="2.4"/><circle cx="6" cy="18.5" r="2.4"/><circle cx="18" cy="12" r="2.4"/><path d="M8.2 6.6 15.8 11"/><path d="M8.2 17.4 15.8 13"/>',
  story:'<rect x="3.5" y="8" width="13.5" height="11" rx="2"/><path d="M7.5 5h13v10"/><line x1="6.5" y1="12" x2="14" y2="12"/><line x1="6.5" y1="15.5" x2="11.5" y2="15.5"/>',
  final:'<line x1="6" y1="3" x2="6" y2="21"/><path d="M6 4.5h12l-3.2 4 3.2 4H6z"/>',
- blitz:'<polygon points="13 2 5 14 11 14 9.5 22 19.5 9.5 13.5 9.5" fill="currentColor" stroke="none"/>'
+ blitz:'<polygon points="13 2 5 14 11 14 9.5 22 19.5 9.5 13.5 9.5" fill="currentColor" stroke="none"/>',
+ moriarty:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/><circle cx="12" cy="12" r="4"/>'
 };
 function micon(id){return `<svg class="micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[id]||""}</svg>`}
 
@@ -924,7 +1002,7 @@ function renderTask(){
     if(bb.dataset.arm)showIntro(m);
     else{bb.dataset.arm="1";bb.textContent="← Отложить? Ход расследования не сохранится — нажмите ещё раз"}
   });
-  ({quiz:rQuiz,order:rOrder,match:rMatch,sort:rSort,build:rBuild,dialog:rDialog,spot:rSpot,tf:rTf})[t.t](t);
+  ({quiz:rQuiz,order:rOrder,match:rMatch,sort:rSort,build:rBuild,dialog:rDialog,spot:rSpot,tf:rTf,maze:rMaze,cipher:rCipher,chain:rChain})[t.t](t);
   window.scrollTo(0,0);
 }
 
@@ -1186,6 +1264,146 @@ function rTf(t){
   }
   document.getElementById("tfT").addEventListener("click",()=>ans(true));
   document.getElementById("tfF").addEventListener("click",()=>ans(false));
+}
+
+/* Лабиринт: этапы ЖЦ по порядку */
+function rMaze(t){
+  const body=document.getElementById("tbody");
+  const map=t.map.map(r=>r.split(""));
+  const H=map.length,W=map[0].length;
+  let px=1,py=1,next=0,pen=0,over=false;
+  const penalized=new Set();
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]==="S"){py=y;px=x}
+  body.innerHTML=`<div class="maze-wrap">
+    <div class="maze" id="mz" style="grid-template-columns:repeat(${W},1fr)"></div>
+    <div class="maze-side">
+      <div class="zone-label">Маршрут расследования</div>
+      <ol class="mlist" id="mlist">${t.stations.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+      <div class="dpad" aria-label="Управление">
+        <button data-d="0,-1" aria-label="Вверх">▲</button>
+        <div><button data-d="-1,0" aria-label="Влево">◀</button><button data-d="0,1" aria-label="Вниз">▼</button><button data-d="1,0" aria-label="Вправо">▶</button></div>
+      </div>
+      <div class="sort-note">Стрелки, WASD или кнопки</div>
+    </div>
+  </div>
+  <div class="sort-note" id="mmsg">Соберите все этапы строго по порядку, затем идите к выходу E.</div>`;
+  const mz=document.getElementById("mz");
+  function draw(){
+    let h="";
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const c=map[y][x];
+      let cls="mc "+(c==="#"?"w":c==="E"?(next>=t.stations.length?"exit open":"exit"):"p");
+      let inner="";
+      if(c>="1"&&c<="6")inner=`<span class="stn ${+c<=next?"got":""}">${c}</span>`;
+      if(c==="E")inner=`<span class="stn ${next>=t.stations.length?"got":""}">E</span>`;
+      if(x===px&&y===py)inner+=`<span class="pl"></span>`;
+      h+=`<div class="${cls}">${inner}</div>`;
+    }
+    mz.innerHTML=h;
+    document.querySelectorAll("#mlist li").forEach((li,i)=>li.className=i<next?"done":i===next?"cur":"");
+  }
+  function move(dx,dy){
+    if(over)return;
+    const ny=py+dy,nx=px+dx;
+    const c=(map[ny]||[])[nx];
+    if(!c||c==="#")return;
+    px=nx;py=ny;
+    const msg=document.getElementById("mmsg");
+    if(c>="1"&&c<="6"){
+      const idx=+c-1;
+      if(idx===next){next++;penalized.delete(idx);msg.textContent=`Этап «${t.stations[idx]}» пройден! ${next<t.stations.length?"Следующий: «"+t.stations[next]+"».":"Все этапы собраны — к выходу E!"}`}
+      else if(idx>next&&!penalized.has(idx)){pen++;penalized.add(idx);msg.textContent=`Рано! Нельзя перескакивать этапы: сначала — «${t.stations[next]}».`}
+    }
+    if(c==="E"&&next>=t.stations.length){
+      over=true;draw();
+      finishTask(Math.max(4,10-2*pen),pen===0,pen===0?"":esc(t.stations.join(" → ")),t);
+      return;
+    }
+    draw();
+  }
+  const key=e=>{
+    const k=(e.key||"").toLowerCase();
+    const mp={arrowup:[0,-1],w:[0,-1],"ц":[0,-1],arrowdown:[0,1],s:[0,1],"ы":[0,1],arrowleft:[-1,0],a:[-1,0],"ф":[-1,0],arrowright:[1,0],d:[1,0],"в":[1,0]};
+    if(mp[k]){e.preventDefault();move(mp[k][0],mp[k][1])}
+  };
+  document.addEventListener("keydown",key);
+  window.__mazeKey=key;
+  body.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",()=>{
+    const [dx,dy]=b.dataset.d.split(",").map(Number);move(dx,dy);
+  }));
+  draw();
+}
+
+/* Шифр: расшифруйте слово по ключу */
+function rCipher(t){
+  const body=document.getElementById("tbody"),act=document.getElementById("tact");
+  const SYMS=["⚑","☂","♞","☾","✦","❖","⌛","✉","♜","⚙","❄","♪","☘","⚔","✂","♠","♫","☄"];
+  const letters=t.word.split("");
+  const all=shuffle([...new Set([...letters,...t.decoys.split("")])]);
+  const syms=shuffle(SYMS).slice(0,all.length);
+  const map={};all.forEach((L,i)=>map[L]=syms[i]);
+  let fill=letters.map(()=>null);
+  const bank=shuffle(all);
+  function draw(){
+    body.innerHTML=`<div class="cipher-row">${letters.map((L,j)=>`
+      <div class="cy"><span class="sym">${map[L]}</span>
+        <div class="cslot ${fill[j]?"filled":""}" data-j="${j}">${fill[j]||""}</div>
+      </div>`).join("")}</div>
+    <div class="zone-label">Перехваченный ключ Мориарти</div>
+    <div class="keytab">${shuffle(all.map(L=>`<span>${map[L]} = <b>${L}</b></span>`)).join("")}</div>
+    <div class="zone-label">Буквы (есть лишние)</div>
+    <div class="chips">${bank.map((L,j)=>`<button class="chip ${fill.includes(L)?"used":""}" data-j="${j}">${L}</button>`).join("")}</div>`;
+    act.innerHTML=`<button class="btn btn-primary" id="sub" ${fill.every(x=>x)?"":"disabled"}>Расшифровать</button>`;
+    body.querySelectorAll(".chip:not(.used)").forEach(c=>c.addEventListener("click",()=>{
+      const k=fill.indexOf(null);if(k===-1)return;
+      fill[k]=bank[+c.dataset.j];draw();
+    }));
+    body.querySelectorAll(".cslot.filled").forEach(c=>c.addEventListener("click",()=>{fill[+c.dataset.j]=null;draw()}));
+    const sub=document.getElementById("sub");
+    if(sub)sub.addEventListener("click",()=>{
+      let okN=0;
+      body.querySelectorAll(".cslot").forEach(c=>{
+        const j=+c.dataset.j,good=fill[j]===letters[j];
+        if(good)okN++;
+        c.classList.add(good?"ok":"bad");
+        if(!good)c.textContent=letters[j];
+        c.style.pointerEvents="none";
+      });
+      body.querySelectorAll(".chip").forEach(x=>x.disabled=true);
+      act.innerHTML="";
+      finishTask(Math.round(10*okN/letters.length),okN===letters.length,okN===letters.length?"":esc(t.word),t);
+    });
+  }
+  draw();
+}
+
+/* Распутай дело: метод пяти «почему» */
+function rChain(t){
+  const body=document.getElementById("tbody");
+  body.innerHTML=`<div class="chain-start">${esc(t.start)}</div><div id="chArea"></div><div id="chOpts" style="margin-top:14px"></div>`;
+  const area=document.getElementById("chArea"),optsEl=document.getElementById("chOpts");
+  let k=0,okN=0;
+  function step(){
+    if(k>=t.steps.length){
+      optsEl.innerHTML="";
+      finishTask(Math.round(10*okN/t.steps.length),okN===t.steps.length,okN===t.steps.length?"":t.steps.map(s=>esc(s.opts[s.a])).join(" → "),t);
+      return;
+    }
+    const s=t.steps[k];
+    optsEl.innerHTML=`<div class="zone-label">${esc(s.ask)}</div><div class="opts">${s.opts.map((o,j)=>`<button class="opt" data-j="${j}">${esc(o)}</button>`).join("")}</div>`;
+    optsEl.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+      const j=+b.dataset.j,good=j===s.a;
+      if(good)okN++;
+      else{
+        b.classList.add("sel-bad");
+        optsEl.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+      }
+      area.insertAdjacentHTML("beforeend",`<div class="chain-arrow">↓ ${k<t.steps.length-1||k===0?"почему?":"вывод"}</div><div class="chain-card okc">${esc(s.opts[s.a])}${good?"":` <span style="font-size:12px;color:var(--muted)">· распутано с подсказкой: ${esc(s.exp)}</span>`}</div>`);
+      k++;
+      setTimeout(step,good?350:1500);
+    }));
+  }
+  step();
 }
 
 /* -------- Результаты -------- */
