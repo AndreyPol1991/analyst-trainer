@@ -75,6 +75,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
   box-shadow:var(--shadow); transition:transform .12s ease, border-color .12s ease;
 }
 .mcard:hover{transform:translateY(-2px); border-color:var(--teal)}
+.mcard .mthumb{width:100%; height:120px; object-fit:cover; object-position:top; border-radius:9px; border:1px solid var(--line); filter:saturate(.9); display:block}
 .mcard .idx{font-family:Consolas,Menlo,monospace; font-size:13px; color:var(--accent); letter-spacing:.05em}
 .mcard .idx .fin{color:var(--teal)}
 .mcard h3{margin:0; font-size:17px; font-weight:750; letter-spacing:-.01em; line-height:1.25}
@@ -909,6 +910,7 @@ function showHub(){
     const st=S.mods[m.id]||{};
     const prog=st.finished?100:0;
     return `<button class="mcard" data-m="${m.id}">
+      ${INTRO_ART[m.id]?`<img class="mthumb" src="${INTRO_ART[m.id].src}" alt="" aria-hidden="true">`:""}
       <div class="toprow"><div class="idx">Дело ${m.num}${st.finished?` <span class="fin">· раскрыто</span>`:""}</div>${micon(m.id)}</div>
       <h3>${esc(m.title)}</h3>
       <div class="meta">${m.tasks.length} улик${st.finished?` · лучший результат ${st.bestCorrect}/${m.tasks.length}`:""}</div>
