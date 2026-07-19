@@ -52,6 +52,8 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
 .stat b{font-family:Consolas,Menlo,monospace; font-size:17px; line-height:1.2; color:var(--accent)}
 .stat span{font-size:10.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--muted)}
 .stat.rank b{color:var(--teal); font-size:14px; font-family:inherit; font-weight:700}
+.hud-reset{border:1px solid var(--line); border-radius:8px; padding:6px 13px; font-size:12.5px; color:var(--muted); white-space:nowrap}
+.hud-reset:hover{color:var(--bad); border-color:var(--bad)}
 
 /* ---------- Hub ---------- */
 .hero{padding:44px 0 10px; display:grid; grid-template-columns:1fr 225px; gap:36px; align-items:center}
@@ -411,6 +413,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
     <div class="stat rank"><b id="hud-rank">Стажёр</b><span>звание</span></div>
     <div class="stat"><b id="hud-xp" class="mono">0</b><span>XP</span></div>
     <div class="stat"><b id="hud-streak" class="mono">0</b><span>рекорд серии</span></div>
+    <button class="hud-reset" id="hud-reset" title="Стереть весь прогресс и начать заново">Сброс</button>
   </div>
 </div>
 
@@ -1758,6 +1761,18 @@ function confetti(){
     if(++f<170)requestAnimationFrame(tick);else c.remove();
   })();
 }
+
+const hr=document.getElementById("hud-reset");
+hr.addEventListener("click",()=>{
+  if(hr.dataset.arm){
+    S={mods:{},bestStreak:0};save();
+    hr.dataset.arm="";hr.textContent="Сброс";hr.style.color="";hr.style.borderColor="";
+    showHub();
+  }else{
+    hr.dataset.arm="1";hr.textContent="Точно? Ещё раз";hr.style.color="var(--bad)";hr.style.borderColor="var(--bad)";
+    setTimeout(()=>{if(hr.dataset.arm){hr.dataset.arm="";hr.textContent="Сброс";hr.style.color="";hr.style.borderColor=""}},4000);
+  }
+});
 
 showHub();
 </script>
