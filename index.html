@@ -915,6 +915,179 @@ function hud(){
   document.getElementById("hud-rank").textContent=rank(totalXp());
   document.getElementById("hud-streak").textContent=S.bestStreak;
 }
+
+/* ============================== ПЛАТФОРМА AMP: МОСТ trainer/1 ==============================
+   Бюро открыто внутри платформы ampschool.ru (в рамке) — сообщает ей о раскрытых делах, и они
+   засчитываются в профиль навыков. Открыто само по себе — моста как будто нет: ни сообщений,
+   ни таймеров, ни отметок. Протокол — docs/09-trainer-contract.md в репозитории платформы.
+
+   Задание платформы — дело целиком, код задания равен id дела: lc, team, analyst, req, gather,
+   method, story. «Финальный проект», «Блиц-допрос» и «Испытания Мориарти» в зачёт не идут. Что
+   дело подтверждает в графе навыков, решает манифест платформы (content/trainers/detective.ts):
+   дело, о котором она не знает, молча не засчитывается.
+
+   Дело решено, когда за один проход верно не меньше 80 % улик.
+   attempts — номер прохода дела, на котором это случилось впервые: S.mods[id].runs считает
+   законченные проходы, S.mods[id].passRun запоминает номер первого прохода на 80 %. Второй
+   проход — уже отчасти по памяти (после ошибки бюро сразу показывает верный ответ), поэтому
+   номер прохода и есть попытка.
+   hints — всегда 0: подсказок в бюро нет, записная книжка открыта до начала дела.
+
+   Раскрыто раньше, без платформы: после hello досылаем solved по делам, у которых номер
+   прохода записан и которые платформа ещё не зачла. Прогресс, набранный до моста, не досылаем:
+   у него нет числа проходов, а придумать попытки — значит подогнать доказательство.
+
+   События учёбы (расширение events, раздел 3а контракта) — только если платформа объявила их в
+   hello. started — открыл дело; attempt — закончил проход (ok — набрано 80 %, attempts — номер
+   прохода в этом заходе); passed — раскрыл дело; gave_up 'left' — ушёл в картотеку, к другому
+   делу или закрыл страницу, не раскрыв дело, после прохода или минуты работы. Время — только
+   пока страница на экране. Копим и отдаём пачками: раз в 10 секунд, по 50 и при уходе.
+   Снимок уровней (skills) бюро не показывает и не объявляет.
+
+   Источник проверяется: сообщения принимаются только от родительского окна и только с адреса
+   платформы (ampschool.ru, при разработке платформы — localhost); после hello — только с того
+   же адреса, что прислал hello, и ответы уходят только туда. */
+const AMP=(function(){
+  const PROTOCOL="trainer/1",TRAINER="detective",FEATURES=["events"];
+  const TASKS=["lc","team","analyst","req","gather","method","story"];
+  const PASS=.8,HOME="https://ampschool.ru";
+  const PLATFORM=/^https:\/\/([a-z0-9-]+\.)*ampschool\.ru$/,DEV=/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+  const allowed=o=>typeof o==="string"&&(PLATFORM.test(o)||DEV.test(o));
+  const FLUSH_MS=10000,BATCH=50,MAX_QUEUE=200,WAIT_HELLO_MS=15000,LEFT_MS=60000,MAX_MS=6*3600*1000;
+  let embedded=false;try{embedded=window.parent!==window}catch(e){}
+  const B={
+    linked:false,        // пришёл hello: мы внутри платформы
+    origin:null,         // адрес платформы из hello — единственный, кому отвечаем
+    credited:new Set(),  // зачтено платформой: hello.solved и accepted
+    sent:new Set()       // solved отправлен в этом заходе
+  };
+  const T={on:false,dead:!embedded,queue:[],cur:null}; // события учёбы: cur — открытое дело
+
+  /* адрес родителя до hello: нужен, чтобы ready не уходил кому попало */
+  function parentOrigin(){
+    try{const a=location.ancestorOrigins;if(a&&a.length)return a[0]}catch(e){}
+    try{if(document.referrer)return new URL(document.referrer).origin}catch(e){}
+    return null;
+  }
+  function send(msg){
+    if(!embedded)return;
+    let to=B.origin;
+    if(!to){const p=parentOrigin();if(p&&!allowed(p))return;to=p||HOME}
+    try{window.parent.postMessage(Object.assign({protocol:PROTOCOL,trainer:TRAINER},msg),to)}catch(e){}
+  }
+  function offer(id){
+    const st=S.mods[id];
+    if(!B.linked||!TASKS.includes(id)||!st||!st.passRun||B.credited.has(id)||B.sent.has(id))return;
+    B.sent.add(id);
+    send({kind:"solved",task:id,attempts:Math.min(99,Math.max(1,Math.floor(st.passRun))),hints:0});
+  }
+
+  /* ---------- события учёбы ---------- */
+  const now=()=>performance.now();
+  const spent=c=>Math.min(MAX_MS,Math.round(c.ms+(c.from!=null?now()-c.from:0)));
+  function push(ev){
+    if(T.dead)return;
+    T.queue.push(ev);
+    if(T.queue.length>MAX_QUEUE)T.queue.splice(0,T.queue.length-MAX_QUEUE);
+    if(T.on&&T.queue.length>=BATCH)flush();
+  }
+  function flush(){if(T.on&&B.linked)while(T.queue.length)send({kind:"events",events:T.queue.splice(0,BATCH)})}
+  function begin(id){
+    if(T.cur&&T.cur.task===id)return T.cur;
+    leave();
+    T.cur={task:id,ms:0,from:document.hidden?null:now(),attempts:0,passed:false};
+    push({type:"started",task:id});
+    return T.cur;
+  }
+  /* ушёл с дела, не раскрыв его: сдался, если успел поработать */
+  function leave(){
+    const c=T.cur;if(!c)return;
+    T.cur=null;
+    if(c.passed)return;
+    const ms=spent(c);
+    if(c.attempts>0||ms>=LEFT_MS)push({type:"gave_up",task:c.task,reason:"left",attempts:Math.min(999,c.attempts),ms});
+  }
+
+  /* ---------- отметки «в профиле» ---------- */
+  let resId=null;
+  function css(){
+    if(document.getElementById("amp-css"))return;
+    const s=document.createElement("style");s.id="amp-css";
+    s.textContent=`.amp-prof{display:inline-block;margin-left:8px;padding:0 7px;border:1px solid currentColor;border-radius:999px;font:600 11px/16px Consolas,Menlo,monospace;color:var(--good);white-space:nowrap;vertical-align:1px}
+.amp-note{margin:10px auto 0;max-width:560px;font-size:14px;color:var(--muted)}.amp-note.ok{color:var(--good);font-weight:600}`;
+    document.head.appendChild(s);
+  }
+  function paint(){
+    if(!B.linked)return;
+    css();
+    app.querySelectorAll(".mcard[data-m]").forEach(b=>{
+      const idx=b.querySelector(".idx"),tag=b.querySelector(".amp-prof"),on=B.credited.has(b.dataset.m);
+      if(on&&!tag&&idx){const t=document.createElement("span");t.className="amp-prof";t.textContent="в профиле";t.title="Засчитано в профиль навыков AMP";idx.appendChild(t)}
+      if(!on&&tag)tag.remove();
+    });
+    const res=app.querySelector(".res"),sub=res&&res.querySelector(".sub");
+    if(!sub||!resId||!TASKS.includes(resId))return;
+    let note=res.querySelector(".amp-note");
+    if(!note){note=document.createElement("p");note.className="amp-note";sub.after(note)}
+    const m=M.find(x=>x.id===resId),need=Math.ceil(PASS*m.tasks.length);
+    if(B.credited.has(resId)){note.className="amp-note ok";note.textContent="✓ Дело засчитано в профиль навыков AMP"}
+    else if(!(S.mods[resId]||{}).passRun){note.className="amp-note";note.textContent=`В профиль навыков дело идёт, когда за один проход верно ${need} из ${m.tasks.length} улик.`}
+    else note.remove();
+  }
+
+  /* ---------- вызовы из движка ---------- */
+  /* открыл дело: «Открыть дело» и «Расследовать заново» (runMission) */
+  function start(m){if(embedded&&m)begin(m.id)}
+  /* проход закончен, итог уже записан в S (showResults, после save) */
+  function result(m,ratio){
+    if(!m)return;
+    resId=m.id;
+    if(embedded){
+      const c=begin(m.id),ok=ratio>=PASS;
+      c.attempts+=1;
+      push({type:"attempt",task:m.id,ok,attempts:Math.min(999,c.attempts),ms:spent(c)});
+      if(ok&&!c.passed){c.passed=true;push({type:"passed",task:m.id,attempts:Math.min(999,c.attempts),ms:spent(c)})}
+    }
+    offer(m.id);
+    paint();
+  }
+  /* вернулся в картотеку (showHub) */
+  function hub(){resId=null;leave();paint()}
+
+  /* ---------- ответ платформы ---------- */
+  window.addEventListener("message",e=>{
+    if(!embedded||e.source!==window.parent||!allowed(e.origin))return;
+    if(B.origin&&e.origin!==B.origin)return;
+    const d=e.data;
+    if(typeof d!=="object"||d===null||d.protocol!==PROTOCOL)return;
+    if(d.kind==="hello"){
+      B.linked=true;B.origin=e.origin;
+      (Array.isArray(d.solved)?d.solved:[]).forEach(t=>{if(typeof t==="string")B.credited.add(t)});
+      const events=Array.isArray(d.features)&&d.features.includes("events");
+      T.on=events;T.dead=!events;if(!events)T.queue=[];
+      TASKS.forEach(offer);
+      flush();paint();
+    }else if(d.kind==="accepted"&&B.linked&&typeof d.task==="string"){
+      B.credited.add(d.task);paint();
+    }
+  });
+  if(embedded){
+    setInterval(flush,FLUSH_MS);
+    /* родитель не ответил — значит, это не платформа: событий не копим */
+    setTimeout(()=>{if(!B.linked){T.dead=true;T.queue=[]}},WAIT_HELLO_MS);
+    document.addEventListener("visibilitychange",()=>{
+      const c=T.cur;if(!c)return;
+      if(document.hidden){if(c.from!=null){c.ms+=now()-c.from;c.from=null}flush()}
+      else if(c.from==null)c.from=now();
+    });
+    /* закрыли окно тренажёра или страницу: уход с дела и последняя пачка */
+    window.addEventListener("pagehide",()=>{leave();flush()});
+  }
+
+  /* ready — когда картотека нарисована (в самом конце скрипта) */
+  function ready(){send({kind:"ready",features:FEATURES})}
+  return {start,result,hub,ready,PASS,state:B,events:T};
+})();
 const TYPE_LABEL={quiz:"Дедукция · выберите верный вывод",order:"Хронология · восстановите ход событий",match:"Сопоставление · свяжите улики",sort:"Картотека · разложите улики по папкам",build:"Улика · соберите user story по фрагментам",dialog:"Показания · ведите допрос репликами",spot:"Экспертиза · найдите подозрительную строку",tf:"Блиц-допрос · 8 секунд на вердикт",maze:"Лабиринт · пройдите этапы по порядку",cipher:"Шифр · расшифруйте перехваченное слово",chain:"Распутай дело · метод пяти «почему»",memory:"Мемори · откройте карточки и найдите пары"};
 
 const QUOTES={
@@ -1056,6 +1229,7 @@ function showHub(){
     if(rb.dataset.arm){S={mods:{},bestStreak:0};save();showHub()}
     else{rb.dataset.arm="1";rb.textContent="Точно сжечь всё досье? Нажмите ещё раз";rb.style.color="var(--bad)"}
   });
+  AMP.hub();
   window.scrollTo(0,0);
 }
 
@@ -1086,6 +1260,7 @@ function showIntro(m){
 let run=null;
 function runMission(m){
   run={m,i:0,correct:0,xp:0,streak:0,mistakes:[]};
+  AMP.start(m);
   renderTask();
 }
 function renderTask(){
@@ -1941,10 +2116,17 @@ function showResults(){
   const n=m.tasks.length,ratio=run.correct/n,st=stars(ratio);
   const rankBefore=rank(totalXp());
   const prev=S.mods[m.id]||{};
+  /* runs — законченные проходы дела, passRun — номер первого прохода на 80 % (мост AMP, attempts).
+     Объект дела пишется заново, поэтому оба поля переносим сами. У дела, раскрытого до появления
+     счётчика, был минимум один проход. */
+  const runs=(prev.runs||(prev.finished?1:0))+1;
   S.mods[m.id]={finished:true,
     bestXp:Math.max(prev.bestXp||0,run.xp),
     bestCorrect:Math.max(prev.bestCorrect||0,run.correct),
-    stars:Math.max(prev.stars||0,st)};
+    stars:Math.max(prev.stars||0,st),
+    runs};
+  if(prev.passRun)S.mods[m.id].passRun=prev.passRun;
+  else if(ratio>=AMP.PASS)S.mods[m.id].passRun=runs;
   save();hud();
   const verdicts=["Преступник ушёл… но каждый ложный след чему-то учит. Перечитайте записную книжку — и снова в погоню!","Ватсон впечатлён, но часть улик осталась нераскрытой.","Отличная дедукция, инспектор! До идеала — пара улик.","Элементарно! Дело раскрыто блестяще — Скотленд-Ярд аплодирует."];
   app.innerHTML=`
@@ -1975,6 +2157,7 @@ function showResults(){
   </div>`;
   document.getElementById("again").addEventListener("click",()=>runMission(m));
   document.getElementById("hub").addEventListener("click",showHub);
+  AMP.result(m,ratio);
   window.scrollTo(0,0);
   if(st>=2&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))confetti();
 }
@@ -2015,4 +2198,5 @@ hr.addEventListener("click",()=>{
 });
 
 showHub();
+AMP.ready(); /* мост AMP: тренажёр готов — платформа ответит hello */
 </script>
