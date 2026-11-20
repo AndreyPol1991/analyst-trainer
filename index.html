@@ -445,9 +445,34 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
   *{transition:none !important; animation:none !important}
 }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style id="amp-skin">
+/* ── Оформление школы AMP ──────────────────────────────────────────────
+   Тренажёр — часть школы: шрифты, цвета и знак, как на ampschool.ru.
+   Слой переопределяет переменные и шрифты; дела, иллюстрации и сюжет — свои. */
+:root{ --bg:#f4f6f8; --surface:#ffffff; --surface2:#eef1f5; --ink:#0d141c; --muted:#4a5a6b; --line:#dde3ea; --accent:#0a7d46; --accent-ink:#096838; --accent-soft:#dcf5e7; --teal:#1a56c4; --teal-soft:#e3ecfd; --good:#0a7d46; --good-soft:#dcf5e7; --bad:#c62f27; --bad-soft:#fdeceb; --amp-on-accent:#ffffff; }
+@media (prefers-color-scheme:dark){ :root{ --bg:#0b0f14; --surface:#141a22; --surface2:#1b232d; --ink:#e9eef4; --muted:#a7b4c3; --line:#263140; --accent:#17d07c; --accent-ink:#35e094; --accent-soft:#10281c; --teal:#74a6ff; --teal-soft:#12203a; --good:#17d07c; --good-soft:#10281c; --bad:#ff6f64; --bad-soft:#3a1a18; --amp-on-accent:#07130c; } }
+:root[data-theme="dark"]{ --bg:#0b0f14; --surface:#141a22; --surface2:#1b232d; --ink:#e9eef4; --muted:#a7b4c3; --line:#263140; --accent:#17d07c; --accent-ink:#35e094; --accent-soft:#10281c; --teal:#74a6ff; --teal-soft:#12203a; --good:#17d07c; --good-soft:#10281c; --bad:#ff6f64; --bad-soft:#3a1a18; --amp-on-accent:#07130c; }
+:root[data-theme="light"]{ --bg:#f4f6f8; --surface:#ffffff; --surface2:#eef1f5; --ink:#0d141c; --muted:#4a5a6b; --line:#dde3ea; --accent:#0a7d46; --accent-ink:#096838; --accent-soft:#dcf5e7; --teal:#1a56c4; --teal-soft:#e3ecfd; --good:#0a7d46; --good-soft:#dcf5e7; --bad:#c62f27; --bad-soft:#fdeceb; --amp-on-accent:#ffffff; }
+body{font-family:"Inter",ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+.hero h1,.miss-head h2,.res h2,h1,h2,h3{font-family:"Space Grotesk","Inter",ui-sans-serif,system-ui,sans-serif; letter-spacing:-.015em}
+.mono,.stat b,.mcard .idx,.task-top .count,.task-top .streak{font-family:"JetBrains Mono",ui-monospace,"Cascadia Code",Consolas,monospace}
+.stat.rank b{font-family:inherit}
+:focus-visible{outline-color:var(--accent)}
+.amp-mark{flex:none; display:inline-grid; place-items:center; width:30px; height:30px; border-radius:8px; background:var(--accent); color:var(--amp-on-accent); font:700 10px/1 "Space Grotesk","Inter",sans-serif; letter-spacing:.02em; text-decoration:none}
+.amp-mark:hover{filter:brightness(1.08)}
+.amp-mark:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+html.amp-embedded .amp-mark{display:none}
+/* Подзаголовок повторяет обложку («Лекция 1 · Этапы разработки ПО») — в шапке он только ломал строку. */
+.hud-brand .sub{display:none}
+.hud-in{gap:14px}
+@media (max-width:560px){ .hud-in{gap:8px 12px} .hud-brand{flex:1 1 calc(100% - 46px); margin-right:0} }
+</style>
+<script>try{if(window.self!==window.top)document.documentElement.classList.add("amp-embedded")}catch(e){document.documentElement.classList.add("amp-embedded")}</script>
 
 <div class="hud">
   <div class="hud-in">
+    <a class="amp-mark" href="https://ampschool.ru/practice" title="Школа AMP — все тренажёры" aria-label="Школа AMP — все тренажёры">AMP</a>
     <div class="hud-brand">Бюро анализа · Бейкер-стрит, 221Б <span class="sub">Этапы разработки ПО</span></div>
     <div class="stat rank"><b id="hud-rank">Стажёр</b><span>звание</span></div>
     <div class="stat"><b id="hud-xp" class="mono">0</b><span>XP</span></div>
